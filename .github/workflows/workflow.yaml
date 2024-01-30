@@ -27,7 +27,6 @@ jobs:
     outputs:
       AWS_ROLE: ${{ steps.vars.outputs.AWS_ROLE }}
       ENV: ${{ steps.vars.outputs.ENV }}
-      IMAGE_TAG: ${{ steps.vars.outputs.TAG }}
       PROJECT_PREFIX: ${{ steps.vars.outputs.PROJECT_PREFIX }}
       ECS_CLUSTER: ${{ steps.set_env.outputs.ECS_CLUSTER }}
       ECR_REPOSITORY: ${{ steps.set_env.outputs.ECR_REPOSITORY }}
@@ -41,7 +40,6 @@ jobs:
         run: |
           BRANCH="${GITHUB_REF#refs/heads/}"
           ENV=${{ github.event.inputs.environment }}
-          TAG=${{ github.event.inputs.tag }}
           echo $BRANCH
           
           if [ -z "$ENV" ]
@@ -103,6 +101,7 @@ jobs:
       PROJECT_PREFIX: ${{needs.prepare-env.outputs.PROJECT_PREFIX}}
       ECR_REPOSITORY: ${{needs.prepare-env.outputs.ECR_REPOSITORY}}
       ENVIRONMENT_BUCKET: ${{needs.prepare-env.outputs.ENVIRONMENT_BUCKET}}
+      IMAGE_TAG: ${{ github.event.inputs.tag }}
     outputs:
       ECR_REPO: ${{ steps.build.outputs.ECR_REPO }}
       APP_IMAGE: ${{ steps.image.outputs.APP_IMAGE }}
