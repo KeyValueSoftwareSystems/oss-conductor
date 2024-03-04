@@ -17,7 +17,7 @@ on:
         description: Provide tag (Eg:v3.14.0)
 
 env:
-  SERVICE_NAME: conductor-server
+  SERVICE_NAME: condr-server
   AWS_REGION: "ap-south-1"
 
 
