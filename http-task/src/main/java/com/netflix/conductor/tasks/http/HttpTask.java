@@ -24,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
@@ -175,13 +176,17 @@ public class HttpTask extends WorkflowSystemTask {
             if (responseEntity.getStatusCode().is2xxSuccessful() && responseEntity.hasBody()) {
                 response.body = extractBody(responseEntity.getBody());
             }
-
             response.statusCode = responseEntity.getStatusCodeValue();
             response.reasonPhrase =
                     HttpStatus.valueOf(responseEntity.getStatusCode().value()).getReasonPhrase();
             response.headers = responseEntity.getHeaders();
             return response;
-        } catch (RestClientException ex) {
+        } catch (HttpClientErrorException ex) {
+                response.headers = ex.getResponseHeaders();
+                response.statusCode = ex.getStatusCode().value();
+                response.reasonPhrase = ex.getStatusText();
+                return response;
+         } catch (RestClientException ex) {
             LOGGER.error(
                     String.format(
                             "Got unexpected http response - uri: %s, vipAddress: %s",
