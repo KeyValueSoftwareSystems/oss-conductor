@@ -17,6 +17,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -118,7 +119,9 @@ public class HttpTask extends WorkflowSystemTask {
                 if (response.body != null) {
                     task.setReasonForIncompletion(response.body.toString());
                 } else {
-                    task.setReasonForIncompletion("No response from the remote service");
+                    task.setReasonForIncompletion(
+                            Objects.requireNonNullElse(
+                                    response.reasonPhrase, "No response from the remote service"));
                 }
                 task.setStatus(TaskModel.Status.FAILED);
             }
@@ -182,11 +185,11 @@ public class HttpTask extends WorkflowSystemTask {
             response.headers = responseEntity.getHeaders();
             return response;
         } catch (HttpClientErrorException ex) {
-                response.headers = ex.getResponseHeaders();
-                response.statusCode = ex.getStatusCode().value();
-                response.reasonPhrase = ex.getStatusText();
-                return response;
-         } catch (RestClientException ex) {
+            response.headers = ex.getResponseHeaders();
+            response.statusCode = ex.getStatusCode().value();
+            response.reasonPhrase = ex.getStatusText();
+            return response;
+        } catch (RestClientException ex) {
             LOGGER.error(
                     String.format(
                             "Got unexpected http response - uri: %s, vipAddress: %s",
