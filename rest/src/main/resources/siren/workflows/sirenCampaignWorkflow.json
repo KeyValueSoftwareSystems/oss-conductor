@@ -23,7 +23,7 @@
             },
             "type": "SIMPLE",
             "startDelay": 0,
-            "optional": true,
+            "optional": false,
             "asyncComplete": false,
             "permissive": false
           }
