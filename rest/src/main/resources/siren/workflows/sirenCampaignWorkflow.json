@@ -49,7 +49,7 @@
   "outputParameters": {},
   "schemaVersion": 2,
   "restartable": true,
-  "workflowStatusListenerEnabled": false,
+  "workflowStatusListenerEnabled": true,
   "ownerEmail": "admin@sirenapp.io",
   "timeoutSeconds": 0,
   "variables": {},
