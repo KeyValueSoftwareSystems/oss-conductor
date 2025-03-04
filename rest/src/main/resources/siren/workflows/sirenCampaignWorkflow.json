@@ -19,7 +19,8 @@
               "providerIntegrationId": "${workflow.input.providerIntegrationId}",
               "templateId": "${workflow.input.templateId}",
               "notifyVariables": "${workflow.input.notifyVariables}",
-              "templateVariables": "${workflow.input.templateVariables}"
+              "templateVariables": "${workflow.input.templateVariables}",
+              "traceId": "${workflow.input.traceId}"
             },
             "type": "SIMPLE",
             "startDelay": 0,

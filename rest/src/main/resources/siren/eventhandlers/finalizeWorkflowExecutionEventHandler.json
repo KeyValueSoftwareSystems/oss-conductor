@@ -15,7 +15,8 @@
           "output": "${output}",
           "reasonForIncompletion": "${reasonForIncompletion}",
           "executionTime": "${executionTime}",
-          "event": "${event}"
+          "event": "${event}",
+          "traceId": "${traceId}"
         }
       },
       "expandInlineJSON": true
