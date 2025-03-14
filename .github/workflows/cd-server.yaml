@@ -96,6 +96,7 @@ jobs:
         run: |
           PROJECT_PREFIX=${{ steps.vars.outputs.PROJECT_PREFIX }}
           echo "K8S_CLUSTER=$PROJECT_PREFIX-prime"  >> $GITHUB_OUTPUT
+          echo "ENVIRONMENT_BUCKET=$PROJECT_PREFIX-s3-environment"  >> $GITHUB_OUTPUT
           echo ":seedling: Branch:${GITHUB_REF#refs/heads/}" >> $GITHUB_STEP_SUMMARY
           
   # Deploy Conductor UI Image to ECS
@@ -130,7 +131,7 @@ jobs:
           aws eks update-kubeconfig --name ${{ needs.prepare-env.outputs.K8S_CLUSTER }}
           aws s3 cp s3://${{ needs.prepare-env.outputs.ENVIRONMENT_BUCKET }}/helm/${{ env.SERVICE_NAME }}/values.yaml ./values.yaml 
           cat ./values.yaml
-          aws ecr get-login-password --region ${{ env.AWS_REGION }} | helm registry login --username AWS --password-stdin ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com
+          aws ecr get-login-password --region ${{ env.AWS_REGION }} | helm registry login --username AWS --password-stdin ${{ vars[env.AWS_ACCOUNT_ID] }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com
           
           # Construct base Helm command
           HELM_CMD="helm upgrade --install ${{ env.SERVICE_NAME }} oci://${{ vars[env.AWS_ACCOUNT_ID] }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.HELM_CHART_NAME }} \
