@@ -120,7 +120,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/github-actions
+          role-to-assume: arn:aws:iam::${{ vars[env.AWS_ACCOUNT_ID] }}:role/github-actions
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Amazon ECR Login
@@ -146,10 +146,10 @@ jobs:
           aws ecr get-login-password --region ${{ env.AWS_REGION }} | helm registry login --username AWS --password-stdin ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com
           
           # Construct base Helm command
-          HELM_CMD="helm upgrade --install ${{ env.SERVICE_NAME }} oci://${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.HELM_CHART_NAME }} \
+          HELM_CMD="helm upgrade --install ${{ env.SERVICE_NAME }} oci://${{ vars[env.AWS_ACCOUNT_ID] }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.HELM_CHART_NAME }} \
             --namespace ${{ needs.prepare-env.outputs.ENV }} \
             --values values.yaml \
-            --set default.image.repository='${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ needs.prepare-env.outputs.ECR_REPOSITORY }}' \
+            --set default.image.repository='${{ vars[env.AWS_ACCOUNT_ID] }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ needs.prepare-env.outputs.ECR_REPOSITORY }}' \
             --set default.image.tag='${{ github.event.inputs.tag }}'"
           
           # Run the Helm command
