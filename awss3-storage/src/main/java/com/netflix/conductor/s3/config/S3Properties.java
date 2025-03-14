@@ -24,6 +24,8 @@ public class S3Properties {
     /** The s3 bucket name where the payloads will be stored */
     private String bucketName = "conductor_payloads";
 
+    private Boolean webIdentity = true;
+
     /** The time (in seconds) for which the signed url will be valid */
     @DurationUnit(ChronoUnit.SECONDS)
     private Duration signedUrlExpirationDuration = Duration.ofSeconds(5);
@@ -55,6 +57,9 @@ public class S3Properties {
         this.region = region;
     }
 
+    public Boolean getWebIdentity() {
+        return webIdentity;
+    }
     //    TODO: Add localstack support to test locally
     //    private String endpoint = "http://s3.localhost.localstack.cloud:4566";
     //

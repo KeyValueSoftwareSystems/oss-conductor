@@ -21,6 +21,7 @@ import com.netflix.conductor.common.utils.ExternalPayloadStorage;
 import com.netflix.conductor.core.utils.IDGenerator;
 import com.netflix.conductor.s3.storage.S3PayloadStorage;
 
+import com.amazonaws.auth.WebIdentityTokenCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 
@@ -41,6 +42,11 @@ public class S3Configuration {
             matchIfMissing = true)
     @Bean
     public AmazonS3 amazonS3(S3Properties properties) {
+        if (properties.getWebIdentity()) {
+            return AmazonS3ClientBuilder.standard()
+                    .withCredentials(WebIdentityTokenCredentialsProvider.builder().build())
+                    .build();
+        }
         return AmazonS3ClientBuilder.standard().withRegion(properties.getRegion()).build();
         //        TODO: Add localstack support to test locally
         //        return AmazonS3ClientBuilder.standard()
