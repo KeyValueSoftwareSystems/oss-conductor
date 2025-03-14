@@ -114,16 +114,44 @@ jobs:
     env:
       AWS_ACCOUNT_ID: ${{ needs.prepare-env.outputs.AWS_ACCOUNT_ID }}
     steps:
-      - name: Deploy using composite action
-        uses: KeyvalueSoftwareSystems/siren-github-workflows/eks-deployment@main
+      - name: Checkout code from action
+        uses: actions/checkout@v2
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          AWS_ROLE: ${{ needs.prepare-env.outputs.AWS_ROLE }}
-          ENVIRONMENT_BUCKET: ${{ needs.prepare-env.outputs.ENVIRONMENT_BUCKET }}
-          SERVICE_NAME: ${{ env.SERVICE_NAME }}
-          HELM_CHART_NAME: ${{ env.HELM_CHART_NAME }}
-          K8S_NAMESPACE: ${{ needs.prepare-env.outputs.ENV }}
-          K8S_CLUSTER: ${{ needs.prepare-env.outputs.K8S_CLUSTER }}
-          ECR_REPO: ${{ needs.prepare-env.outputs.ECR_REPOSITORY }}
-          IMAGE_TAG: ${{ github.event.inputs.tag }}
-          AWS_ACCOUNT_ID: ${{ vars[env.AWS_ACCOUNT_ID] }}
-          AWS_REGION: ${{ env.AWS_REGION }}
+          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/github-actions
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Amazon ECR Login
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1.7.0
+
+      - name: Check if image tag exists in ECR
+        id: check-image-existence
+        run: |          
+          if aws ecr describe-images --repository-name "${{ needs.prepare-env.outputs.ECR_REPOSITORY }}" --region "${{ env.AWS_REGION }}" --image-ids imageTag="${{ github.event.inputs.tag }}" 2>&1 | grep -q "imageTag"; then
+            echo "Image tag $IMAGE_TAG exists in ECR"
+          else
+            echo "Error: Image tag $IMAGE_TAG does not exist in ECR"
+            exit 1
+          fi
+
+      - name: Deploy to Kubernetes
+        shell: bash
+        run: |
+          aws eks update-kubeconfig --name ${{ needs.prepare-env.outputs.K8S_CLUSTER }}
+          aws s3 cp s3://${{ needs.prepare-env.outputs.ENVIRONMENT_BUCKET }}/helm/${{ env.SERVICE_NAME }}/values.yaml ./values.yaml 
+          cat ./values.yaml
+          aws ecr get-login-password --region ${{ env.AWS_REGION }} | helm registry login --username AWS --password-stdin ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com
+          
+          # Construct base Helm command
+          HELM_CMD="helm upgrade --install ${{ env.SERVICE_NAME }} oci://${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.HELM_CHART_NAME }} \
+            --namespace ${{ needs.prepare-env.outputs.ENV }} \
+            --values values.yaml \
+            --set default.image.repository='${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ needs.prepare-env.outputs.ECR_REPOSITORY }}' \
+            --set default.image.tag='${{ github.event.inputs.tag }}'"
+          
+          # Run the Helm command
+          echo "Running: $HELM_CMD"
+          eval $HELM_CMD
