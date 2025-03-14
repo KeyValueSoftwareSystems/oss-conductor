@@ -21,7 +21,7 @@ permissions:
   packages: read
   actions: read
 env:
-  SERVICE_NAME: conductor-server
+  SERVICE_NAME: conductor
   AWS_REGION: "ap-south-1"
   HELM_CHART_NAME: "application-helm-chart"
 
