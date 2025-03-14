@@ -123,19 +123,6 @@ jobs:
           role-to-assume: arn:aws:iam::${{ vars[env.AWS_ACCOUNT_ID] }}:role/github-actions
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Amazon ECR Login
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1.7.0
-
-      - name: Check if image tag exists in ECR
-        id: check-image-existence
-        run: |          
-          if aws ecr describe-images --repository-name "${{ needs.prepare-env.outputs.ECR_REPOSITORY }}" --region "${{ env.AWS_REGION }}" --image-ids imageTag="${{ github.event.inputs.tag }}" 2>&1 | grep -q "imageTag"; then
-            echo "Image tag $IMAGE_TAG exists in ECR"
-          else
-            echo "Error: Image tag $IMAGE_TAG does not exist in ECR"
-            exit 1
-          fi
 
       - name: Deploy to Kubernetes
         shell: bash
