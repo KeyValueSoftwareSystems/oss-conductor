@@ -114,6 +114,7 @@ jobs:
       - prepare-env
     env:
       AWS_ACCOUNT_ID: ${{ needs.prepare-env.outputs.AWS_ACCOUNT_ID }}
+      ECR_REPOSITORY: ${{ needs.prepare-env.outputs.ECR_REPOSITORY }}
     steps:
       - name: Checkout code from action
         uses: actions/checkout@v2
@@ -137,7 +138,7 @@ jobs:
           HELM_CMD="helm upgrade --install ${{ env.SERVICE_NAME }} oci://${{ vars[env.AWS_ACCOUNT_ID] }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.HELM_CHART_NAME }} \
             --namespace ${{ needs.prepare-env.outputs.ENV }} \
             --values values.yaml \
-            --set default.image.repository='${{ vars[env.AWS_ACCOUNT_ID] }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ needs.prepare-env.outputs.ECR_REPOSITORY }}' \
+            --set default.image.repository='${{ vars[env.AWS_ACCOUNT_ID] }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ ENV.ECR_REPOSITORY }}' \
             --set default.image.tag='${{ github.event.inputs.tag }}'"
           
           # Run the Helm command
