@@ -28,7 +28,7 @@ env:
 jobs:
   prepare-env:
     name: Prepare Env
-    runs-on: 'ubuntu-latest'
+    runs-on: "ubuntu-latest"
     timeout-minutes: 2
     outputs:
       AWS_ROLE: ${{ steps.vars.outputs.AWS_ROLE }}
@@ -48,7 +48,7 @@ jobs:
           ENV=${{ github.event.inputs.environment }}
           IMAGE_TAG=${{ github.event.inputs.tag }}
           echo $BRANCH
-          
+
           if [ -z "$ENV" ]
           then
             case $BRANCH in
@@ -98,7 +98,8 @@ jobs:
           echo "K8S_CLUSTER=$PROJECT_PREFIX-prime"  >> $GITHUB_OUTPUT
           echo "ENVIRONMENT_BUCKET=$PROJECT_PREFIX-s3-environment"  >> $GITHUB_OUTPUT
           echo ":seedling: Branch:${GITHUB_REF#refs/heads/}" >> $GITHUB_STEP_SUMMARY
-          
+          echo "ECR_REPOSITORY=$PROJECT_PREFIX-ecr-conductor-server"
+
   # Deploy Conductor UI Image to ECS
   deploy-to-k8s:
     name: Deploy to k8s
@@ -125,7 +126,6 @@ jobs:
           role-to-assume: arn:aws:iam::${{ vars[env.AWS_ACCOUNT_ID] }}:role/github-actions
           aws-region: ${{ env.AWS_REGION }}
 
-
       - name: Deploy to Kubernetes
         shell: bash
         run: |
@@ -133,14 +133,14 @@ jobs:
           aws s3 cp s3://${{ needs.prepare-env.outputs.ENVIRONMENT_BUCKET }}/helm/${{ env.SERVICE_NAME }}/values.yaml ./values.yaml 
           cat ./values.yaml
           aws ecr get-login-password --region ${{ env.AWS_REGION }} | helm registry login --username AWS --password-stdin ${{ vars[env.AWS_ACCOUNT_ID] }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com
-          
+
           # Construct base Helm command
           HELM_CMD="helm upgrade --install ${{ env.SERVICE_NAME }} oci://${{ vars[env.AWS_ACCOUNT_ID] }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.HELM_CHART_NAME }} \
             --namespace ${{ needs.prepare-env.outputs.ENV }} \
             --values values.yaml \
             --set default.image.repository='${{ vars[env.AWS_ACCOUNT_ID] }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}' \
             --set default.image.tag='${{ github.event.inputs.tag }}'"
-          
+
           # Run the Helm command
           echo "Running: $HELM_CMD"
           eval $HELM_CMD
