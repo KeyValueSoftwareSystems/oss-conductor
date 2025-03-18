@@ -24,7 +24,7 @@ public class S3Properties {
     /** The s3 bucket name where the payloads will be stored */
     private String bucketName = "conductor_payloads";
 
-    private Boolean webIdentity = true;
+    private Boolean webIdentity = false;
 
     /** The time (in seconds) for which the signed url will be valid */
     @DurationUnit(ChronoUnit.SECONDS)
