@@ -34,7 +34,7 @@ jobs:
       AWS_ROLE: ${{ steps.vars.outputs.AWS_ROLE }}
       ENV: ${{ steps.vars.outputs.ENV }}
       PROJECT_PREFIX: ${{ steps.vars.outputs.PROJECT_PREFIX }}
-      K8S_CLUSTER: ${{ steps.set_env.outputs.K8S_CLUSTER }}
+      K8S_CLUSTER: ${{ steps.vars.outputs.K8S_CLUSTER }}
       ECR_REPOSITORY: ${{ steps.set_env.outputs.ECR_REPOSITORY }}
       ENVIRONMENT_BUCKET: ${{ steps.set_env.outputs.ENVIRONMENT_BUCKET }}
       SLACK_WEBHOOK_URL: ${{ steps.vars.outputs.SLACK_WEBHOOK_URL }}
@@ -72,18 +72,21 @@ jobs:
             echo "PROJECT_PREFIX=sirn-prd-mb" >> $GITHUB_OUTPUT
             echo "SLACK_WEBHOOK_URL=PRD_SLACK_WEBHOOK_URL" >> $GITHUB_OUTPUT   
             echo "AWS_ACCOUNT_ID=PRD_AWS_ACCOUNT_ID" >> $GITHUB_OUTPUT
+            echo "K8S_CLUSTER=sirn-prd-mb-prime" >> $GITHUB_OUTPUT
           elif [ $ENV == 'stg' ]
           then
             echo "AWS_ROLE=STG_AWS_ROLE" >> $GITHUB_OUTPUT
             echo "PROJECT_PREFIX=sirn-stg-mb" >> $GITHUB_OUTPUT
             echo "SLACK_WEBHOOK_URL=DEV_SLACK_WEBHOOK_URL" >> $GITHUB_OUTPUT  
             echo "AWS_ACCOUNT_ID=NON_PRD_AWS_ACCOUNT_ID" >> $GITHUB_OUTPUT 
+            echo "K8S_CLUSTER=sirn-dev-mb-prime" >> $GITHUB_OUTPUT
           elif [ $ENV == 'dev' ]
           then
             echo "AWS_ROLE=DEV_AWS_ROLE" >> $GITHUB_OUTPUT
             echo "PROJECT_PREFIX=sirn-dev-mb" >> $GITHUB_OUTPUT
             echo "SLACK_WEBHOOK_URL=DEV_SLACK_WEBHOOK_URL" >> $GITHUB_OUTPUT
             echo "AWS_ACCOUNT_ID=NON_PRD_AWS_ACCOUNT_ID" >> $GITHUB_OUTPUT
+            echo "K8S_CLUSTER=sirn-dev-mb-prime" >> $GITHUB_OUTPUT
           else
             echo "Branch not configured!"
             exit 1
@@ -95,7 +98,6 @@ jobs:
         id: set_env
         run: |
           PROJECT_PREFIX=${{ steps.vars.outputs.PROJECT_PREFIX }}
-          echo "K8S_CLUSTER=$PROJECT_PREFIX-prime"  >> $GITHUB_OUTPUT
           echo "ENVIRONMENT_BUCKET=$PROJECT_PREFIX-s3-environment"  >> $GITHUB_OUTPUT
           echo ":seedling: Branch:${GITHUB_REF#refs/heads/}" >> $GITHUB_STEP_SUMMARY
           echo "ECR_REPOSITORY=$PROJECT_PREFIX-ecr-conductor-ui"  >> $GITHUB_OUTPUT
