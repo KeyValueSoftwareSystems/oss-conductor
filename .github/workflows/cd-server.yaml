@@ -122,6 +122,22 @@ jobs:
       - name: Checkout code from action
         uses: actions/checkout@v2
 
+      - name: Checkout values.yaml from siren-infra
+        uses: actions/checkout@v4
+        with:
+          repository: KeyvalueSoftwareSystems/siren-infra
+          ref: main
+          token: ${{inputs.PAT}}
+          sparse-checkout: |
+            k8s/siren-services/${{ inputs.SERVICE_NAME }}/${{ inputs.K8S_NAMESPACE }}-values.yaml
+          sparse-checkout-cone-mode: false
+  
+      - name: Rename values.yaml for Helm
+        shell: bash
+        run: |
+          cp k8s/siren-services/${{ inputs.SERVICE_NAME }}/${{ inputs.K8S_NAMESPACE }}-values.yaml ./values.yaml
+          cat ./values.yaml
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -132,8 +148,6 @@ jobs:
         shell: bash
         run: |
           aws eks update-kubeconfig --name ${{ needs.prepare-env.outputs.K8S_CLUSTER }}
-          aws s3 cp s3://${{ needs.prepare-env.outputs.ENVIRONMENT_BUCKET }}/helm/${{ env.SERVICE_NAME }}/values.yaml ./values.yaml 
-          cat ./values.yaml
           aws ecr get-login-password --region ${{ env.AWS_REGION }} | helm registry login --username AWS --password-stdin ${{ vars[env.AWS_ACCOUNT_ID] }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com
 
           # Construct base Helm command
