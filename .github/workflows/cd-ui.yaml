@@ -127,15 +127,15 @@ jobs:
         with:
           repository: KeyvalueSoftwareSystems/siren-infra
           ref: main
-          token: ${{inputs.PAT}}
+          token: ${{secrets.SIREN_PAT}}
           sparse-checkout: |
-            k8s/siren-services/${{ inputs.SERVICE_NAME }}/${{ inputs.K8S_NAMESPACE }}-values.yaml
+            k8s/siren-services/${{ env.SERVICE_NAME }}/${{ needs.prepare-env.outputs.ENV }}-values.yaml
           sparse-checkout-cone-mode: false
   
       - name: Rename values.yaml for Helm
         shell: bash
         run: |
-          cp k8s/siren-services/${{ inputs.SERVICE_NAME }}/${{ inputs.K8S_NAMESPACE }}-values.yaml ./values.yaml
+          cp k8s/siren-services/${{ env.SERVICE_NAME }}${{ needs.prepare-env.outputs.ENV }}-values.yaml ./values.yaml
           cat ./values.yaml
 
       - name: Configure AWS credentials
