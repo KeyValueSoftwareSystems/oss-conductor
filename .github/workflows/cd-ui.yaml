@@ -135,7 +135,7 @@ jobs:
       - name: Rename values.yaml for Helm
         shell: bash
         run: |
-          cp k8s/siren-services/${{ env.SERVICE_NAME }}${{ needs.prepare-env.outputs.ENV }}-values.yaml ./values.yaml
+          cp k8s/siren-services/${{ env.SERVICE_NAME }}/${{ needs.prepare-env.outputs.ENV }}-values.yaml ./values.yaml
           cat ./values.yaml
 
       - name: Configure AWS credentials
