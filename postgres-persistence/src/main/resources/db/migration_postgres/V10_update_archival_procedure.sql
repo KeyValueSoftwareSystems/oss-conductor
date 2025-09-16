@@ -23,7 +23,7 @@ BEGIN
     SELECT workflow_id
     FROM workflow
     WHERE created_on < archival_date
-      AND (json_data::jsonb ->> 'status') = 'COMPLETED';
+      AND (json_data::jsonb ->> 'status') IN ('COMPLETED', 'FAILED', 'TIMED_OUT', 'TERMINATED');
 
     ALTER TABLE temp_workflows_to_delete ADD PRIMARY KEY (workflow_id);
     ANALYZE temp_workflows_to_delete;
@@ -72,7 +72,7 @@ BEGIN
     total_deleted := deleted_workflows + deleted_wf_def_links +
                      deleted_wf_to_task + deleted_tasks + deleted_task_scheduled;
 
-    log_message := 'Cleanup completed successfully for COMPLETED workflows before ' || archival_date || '. ' ||
+    log_message := 'Cleanup completed successfully for COMPLETED, FAILED, TIMED_OUT, and TERMINATED workflows before ' || archival_date || '. ' ||
                    'Total deleted: ' || total_deleted || ' | Breakdown: ' ||
                    'workflow: ' || deleted_workflows || ', ' ||
                    'workflow_def_to_workflow: ' || deleted_wf_def_links || ', ' ||
