@@ -15,6 +15,8 @@ DECLARE
     deleted_wf_to_task INT := 0;
     deleted_tasks INT := 0;
     deleted_task_scheduled INT := 0;
+    deleted_workflow_index INT := 0;
+    deleted_task_index INT := 0;
     total_deleted INT := 0;
     log_message TEXT;
 BEGIN
@@ -36,6 +38,12 @@ BEGIN
     WHERE wdw.workflow_id = tw.workflow_id;
     GET DIAGNOSTICS deleted_wf_def_links = ROW_COUNT;
 
+    -- workflow_index
+    DELETE FROM workflow_index wi
+    USING temp_workflows_to_delete tw
+    WHERE wi.workflow_id = tw.workflow_id;
+    GET DIAGNOSTICS deleted_workflow_index = ROW_COUNT;
+
     -- workflow_to_task
     CREATE TEMP TABLE temp_tasks_to_delete ON COMMIT DROP AS
     SELECT wt.task_id
@@ -56,6 +64,12 @@ BEGIN
     WHERE ts.task_id = tt.task_id;
     GET DIAGNOSTICS deleted_task_scheduled = ROW_COUNT;
 
+    -- task_index
+    DELETE FROM task_index ti
+    USING temp_tasks_to_delete tt
+    WHERE ti.task_id = tt.task_id;
+    GET DIAGNOSTICS deleted_task_index = ROW_COUNT;
+
     -- task
     DELETE FROM task t
     USING temp_tasks_to_delete tt
@@ -69,16 +83,18 @@ BEGIN
     GET DIAGNOSTICS deleted_workflows = ROW_COUNT;
 
     -- Step 3: Logging
-    total_deleted := deleted_workflows + deleted_wf_def_links +
-                     deleted_wf_to_task + deleted_tasks + deleted_task_scheduled;
+    total_deleted := deleted_workflows + deleted_wf_def_links + deleted_workflow_index +
+                     deleted_wf_to_task + deleted_tasks + deleted_task_scheduled + deleted_task_index;
 
     log_message := 'Cleanup completed successfully for COMPLETED, FAILED, TIMED_OUT, and TERMINATED workflows before ' || archival_date || '. ' ||
                    'Total deleted: ' || total_deleted || ' | Breakdown: ' ||
                    'workflow: ' || deleted_workflows || ', ' ||
                    'workflow_def_to_workflow: ' || deleted_wf_def_links || ', ' ||
+                   'workflow_index: ' || deleted_workflow_index || ', ' ||
                    'workflow_to_task: ' || deleted_wf_to_task || ', ' ||
                    'task: ' || deleted_tasks || ', ' ||
-                   'task_scheduled: ' || deleted_task_scheduled;
+                   'task_scheduled: ' || deleted_task_scheduled || ', ' ||
+                   'task_index: ' || deleted_task_index;
 
     INSERT INTO archival_logs(log_message, archival_date)
     VALUES (log_message, archival_date);
