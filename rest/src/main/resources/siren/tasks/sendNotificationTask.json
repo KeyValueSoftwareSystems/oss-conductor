@@ -13,7 +13,7 @@
     "retryDelaySeconds": 10,
     "responseTimeoutSeconds": 1200,
     "inputTemplate": {},
-    "rateLimitPerFrequency": 500,
+    "rateLimitPerFrequency": 0,
     "rateLimitFrequencyInSeconds": 1,
     "ownerEmail": "admin@sirenapp.io",
     "backoffScaleFactor": 1
