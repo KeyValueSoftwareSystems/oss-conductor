@@ -37,4 +37,11 @@ fi
 
 echo "Using java options config: $JAVA_OPTS"
 
-java ${JAVA_OPTS} -jar -DCONDUCTOR_CONFIG_FILE=$config_file conductor-server.jar 2>&1 | tee -a /app/logs/server.log
+# exec so java replaces this shell and receives SIGTERM directly, allowing a graceful shutdown.
+# Output still goes to the console and /app/logs/server.log through a named pipe.
+log_pipe=/tmp/conductor-server.log.pipe
+rm -f $log_pipe
+mkfifo $log_pipe
+tee -a /app/logs/server.log < $log_pipe &
+
+exec java ${JAVA_OPTS} -jar -DCONDUCTOR_CONFIG_FILE=$config_file conductor-server.jar > $log_pipe 2>&1
